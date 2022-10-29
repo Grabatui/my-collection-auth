@@ -1,0 +1,8 @@
+flask
+flask-restful
+flask_jwt_extended
+dependency-injector
+sqlalchemy
+alembic
+pg8000
+wtforms

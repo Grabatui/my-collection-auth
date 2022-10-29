@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  python:
+    build:
+      context: ./.docker/python/development
+      dockerfile: Dockerfile
+    container_name: flask-auth
+    restart: always
+    environment:
+      - APP_NAME=auth
+      
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_DATABASE=${DB_DATABASE}
+
+      - PASSWORD_SALT=${PASSWORD_SALT}
+
+      - SOURCE_TOKEN_MOVIES=${SOURCE_TOKEN_MOVIES}
+  postgres:
+    build:
+      context: ./.docker/postgres/development
+      dockerfile: Dockerfile
+    container_name: postgres-auth
+    volumes:
+      - ./.docker/postgres/development:/docker-entrypoint-initdb.d
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: ${DB_DATABASE}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+    ports:
+      - "15433:5432"
+
+volumes:
+  postgres-data:
