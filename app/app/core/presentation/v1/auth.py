@@ -43,7 +43,7 @@ class Login(AbstractResource):
         authorizeWithCredentialsUseCase: AuthorizeWithCredentialsUseCase = Provide[Container.athorizeWithCredentialsUseCase]
     ):
         try:
-            source = get_source_from_request_headers(request.headers, sourceTokensProvider)
+            get_source_from_request_headers(request.headers, sourceTokensProvider)
         except Exception as exception:
             return self._send_form_error(str(exception), status=401)
 
@@ -54,8 +54,7 @@ class Login(AbstractResource):
         try:
             tokens = authorizeWithCredentialsUseCase.run(
                 username=form.username.data,
-                decodedPassword=form.password.data,
-                source=source
+                decodedPassword=form.password.data
             )
         except Exception as exception:
             return self._send_error(str(exception), status=401)

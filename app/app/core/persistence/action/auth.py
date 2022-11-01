@@ -10,10 +10,10 @@ class AreAuthorizeCredentialsCorrectAction(AreAuthorizeCredentialsCorrectInterfa
     def __init__(self, userRepository: UserRepository):
         self.userRepository = userRepository
 
-    def run(self, username: str, encodedPassword: str, source: str) -> bool:
+    def run(self, username: str, encodedPassword: str) -> bool:
         user = self.userRepository.get_by_username(username)
 
-        if not user or user.source != source or user.password != encodedPassword:
+        if not user or user.password != encodedPassword:
             return False
 
         return True

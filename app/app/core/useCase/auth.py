@@ -14,10 +14,10 @@ class AuthorizeWithCredentialsUseCase():
         self.areAuthorizeCredentialsCorrect = areAuthorizeCredentialsCorrect
         self.generateAccessAndRefreshTokens = generateAccessAndRefreshTokens
 
-    def run(self, username: str, decodedPassword: str, source: str) -> Tokens:
+    def run(self, username: str, decodedPassword: str) -> Tokens:
         encodedPassword = self.encodePassword.run(decodedPassword)
 
-        if not self.areAuthorizeCredentialsCorrect.run(username, encodedPassword, source):
+        if not self.areAuthorizeCredentialsCorrect.run(username, encodedPassword):
             raise Exception('Credentials are wrong')
 
         return self.generateAccessAndRefreshTokens.run(username)
