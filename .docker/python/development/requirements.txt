@@ -1,5 +1,5 @@
 flask
-flask-restful
+flask-restx
 flask_jwt_extended
 dependency-injector
 sqlalchemy

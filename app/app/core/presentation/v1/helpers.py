@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import Optional
-from flask_restful import Resource, fields
-from flask_restful.fields import Raw
+from flask_restx import Resource, fields
+from flask_restx.fields import Raw
+
+from app.core.domain.common import SourceTokensProvider
 
 
 marshal_error_fields = {
@@ -46,3 +48,22 @@ class AbstractResource(Resource):
             additionalData={'fields': errors},
             status=status
         )
+
+
+def get_source_from_request_headers(
+    headers,
+    sourceTokensProvider: SourceTokensProvider
+) -> str:
+    token = None
+    if 'Authorization' in headers:
+        token = headers['Authorization'].split(' ')[1]
+
+    if not token:
+        raise Exception('Authentication Token is missing')
+
+    source = sourceTokensProvider.get(token)
+
+    if not source:
+        raise Exception('Token in invalid')
+
+    return source

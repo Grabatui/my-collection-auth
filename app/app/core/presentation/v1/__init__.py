@@ -15,3 +15,6 @@ api.add_resource(registration.Register, '/register')
 api.add_resource(auth.Login, '/login')
 
 api.init_app(app)
+
+jwt = container.jwt()
+jwt.init_app(app)

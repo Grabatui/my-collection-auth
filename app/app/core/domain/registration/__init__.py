@@ -1,6 +1,6 @@
-from typing import Optional
 import re
 
+from app.core.domain.common import EncodePasswordInterface
 from app.core.domain.registration.entity import NewUser, SourceEnum
 
 
@@ -11,16 +11,6 @@ PASSWORD_MASK_NUMBERS = '0-9'
 PASSWORD_MASK_SYMBOLS = '`~!@#$%^&*()_\-+={}[\]\\|:;"\'<>,.?/'
 
 
-class ConvertSourceTokenInterface():
-    def run(self, raw_token: str) -> str:
-        raise Exception('Method must be implemented')
-
-
-class EncodePasswordInterface():
-    def run(self, decodedPassword: str) -> str:
-        raise Exception('Method must be implemented')
-
-
 class CreateUserInterface():
     def run(self, user: NewUser) -> bool:
         raise Exception('Method must be implemented')
@@ -29,25 +19,6 @@ class CreateUserInterface():
 class IsUsernameAlreadyExistsInterface():
     def run(self, username: str) -> bool:
         raise Exception('Method must be implemented')
-
-
-class SourceTokensProvider():
-    def __init__(
-        self,
-        tokensBySources: dict,
-        convertSourceToken: ConvertSourceTokenInterface
-    ) -> None:
-        self.tokensBySources = tokensBySources
-        self.convertSourceToken = convertSourceToken
-
-    def get(self, token: str) -> Optional[str]:
-        formattedToken = self.convertSourceToken.run(token)
-
-        for source, checkToken in self.tokensBySources.items():
-            if checkToken == formattedToken:
-                return source
-
-        return None
 
 
 class UserFactory():

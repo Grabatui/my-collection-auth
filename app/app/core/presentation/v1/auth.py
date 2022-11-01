@@ -1,7 +1,12 @@
-from flask_restful import Resource, marshal_with, reqparse, fields
+from flask import request
+from flask_restx import marshal_with, reqparse, fields
 from dependency_injector.wiring import Provide, inject
+from wtforms import Form as BaseForm, fields as forms_fields, validators
 
 from app.core.di.container import Container
+from app.core.presentation.v1.helpers import AbstractResource, ResultEnum, ResultField, get_source_from_request_headers, marshal_error_fields
+from app.core.domain.common import SourceTokensProvider
+from app.core.useCase.auth import AuthorizeWithCredentialsUseCase
 
 
 parser = reqparse.RequestParser()
@@ -9,23 +14,57 @@ parser.add_argument('username', type=str)
 parser.add_argument('password', type=str)
 
 
-resource_fields = {
-    'access_token': fields.String,
-    'refresh_token': fields.String
-}
+class Form(BaseForm):
+    username = forms_fields.StringField('Username', [validators.DataRequired(), validators.Length(min=3)])
+    password = forms_fields.StringField('Password', [validators.DataRequired()])
 
 
-class Login(Resource):
+class Login(AbstractResource):
+    data = marshal_error_fields.copy()
+    data.update({
+        'access_token': fields.String,
+        'refresh_token': fields.String,
+        'expires_in': fields.Integer
+    })
+    resource_fields = {
+        'status': ResultField,
+        'data': fields.Nested(
+            data,
+            allow_null=True,
+            skip_none=True
+        )
+    }
+
     @inject
-    @marshal_with(fields=resource_fields)
-    #def post(self, searchUseCase: SearchUseCase = Provide[Container.searchUseCase]):
-    def post(self):
-        arguments = parser.parse_args()
+    @marshal_with(fields=resource_fields, skip_none=True)
+    def post(
+        self,
+        sourceTokensProvider: SourceTokensProvider = Provide[Container.sourceTokensProvider],
+        authorizeWithCredentialsUseCase: AuthorizeWithCredentialsUseCase = Provide[Container.athorizeWithCredentialsUseCase]
+    ):
+        try:
+            source = get_source_from_request_headers(request.headers, sourceTokensProvider)
+        except Exception as exception:
+            return self._send_form_error(str(exception), status=401)
 
-        # TODO: Add unique access tokens for several projects - only they would login
-        # TODO: Make here access and refresh tokens - https://flask-jwt-extended.readthedocs.io/en/stable/refreshing_tokens/
-        # TODO: Create route for validation
+        form = Form(data=request.get_json())
+        if not form.validate():
+            return self._send_form_error(form.errors, status=400)
+
+        try:
+            tokens = authorizeWithCredentialsUseCase.run(
+                username=form.username.data,
+                decodedPassword=form.password.data,
+                source=source
+            )
+        except Exception as exception:
+            return self._send_error(str(exception), status=401)
+
         return {
-            'access_token': 'access',
-            'refresh_token': 'refresh'
+            'status': ResultEnum.success,
+            'data': {
+                'access_token': tokens.accessToken,
+                'refresh_token': tokens.refreshToken,
+                'expires_in': tokens.expiresIn
+            }
         }
