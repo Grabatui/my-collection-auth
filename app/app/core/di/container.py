@@ -6,8 +6,9 @@ from flask_restx import Api
 
 from app.core.persistence.repository import Database, UserRepository
 from app.core.useCase.registration import RegisterUseCase
-from app.core.useCase.auth import AuthorizeWithCredentialsUseCase
+from app.core.useCase.auth import AuthorizeWithCredentialsUseCase, RefreshTokenUseCase
 from app.core.domain.common import SourceTokensProvider
+from app.core.domain.auth import AuthorizedIdentityProvider
 from app.core.domain.registration import PasswordValidator, UserFactory
 from app.core.persistence.action.common import ConvertSourceTokenAction, EncodePasswordAction
 from app.core.persistence.action.registration import CreateUserAction, IsUsernameAlreadyExistsAction
@@ -56,7 +57,8 @@ class Container(containers.DeclarativeContainer):
     )
     generateAccessAndRefreshTokens = providers.Factory(
         GenerateAccessAndRefreshTokensAction,
-        jwtExpiresIn=configuration.jwt_expires_seconds
+        jwtAccessTokenExpiresIn=configuration.jwt_access_token_expires_seconds,
+        jwtRefreshTokenExpiresIn=configuration.jwt_refresh_token_expires_seconds
     )
 
 
@@ -70,6 +72,7 @@ class Container(containers.DeclarativeContainer):
         encodePassword=encodePassword
     )
     passwordValidator = providers.Singleton(PasswordValidator)
+    authorizedIdentityProvider = providers.Singleton(AuthorizedIdentityProvider)
 
 
     registerUseCase = providers.Factory(
@@ -81,5 +84,10 @@ class Container(containers.DeclarativeContainer):
         AuthorizeWithCredentialsUseCase,
         encodePassword=encodePassword,
         areAuthorizeCredentialsCorrect=areAuthorizeCredentialsCorrect,
+        generateAccessAndRefreshTokens=generateAccessAndRefreshTokens
+    )
+    refreshTokenUseCase = providers.Factory(
+        RefreshTokenUseCase,
+        authorizedIdentityProvider=authorizedIdentityProvider,
         generateAccessAndRefreshTokens=generateAccessAndRefreshTokens
     )

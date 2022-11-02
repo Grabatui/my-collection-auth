@@ -20,14 +20,18 @@ class AreAuthorizeCredentialsCorrectAction(AreAuthorizeCredentialsCorrectInterfa
 
 
 class GenerateAccessAndRefreshTokensAction(GenerateAccessAndRefreshTokensInterface):
-    def __init__(self, jwtExpiresIn: int):
-        self.expiresIn = jwtExpiresIn
+    def __init__(self, jwtAccessTokenExpiresIn: int, jwtRefreshTokenExpiresIn: int):
+        self.accessTokenExpiresIn = jwtAccessTokenExpiresIn
+        self.refreshTokenExpiresIn = jwtRefreshTokenExpiresIn
 
     def run(self, username: str) -> Tokens:
-        accessToken = create_access_token(identity=username)
+        accessToken = create_access_token(
+            identity=username,
+            expires_delta=timedelta(seconds=self.accessTokenExpiresIn)
+        )
         refreshToken = create_refresh_token(
             identity=username,
-            expires_delta=timedelta(seconds=self.expiresIn)
+            expires_delta=timedelta(seconds=self.refreshTokenExpiresIn)
         )
 
-        return Tokens(accessToken, refreshToken, self.expiresIn)
+        return Tokens(accessToken, refreshToken, self.accessTokenExpiresIn)

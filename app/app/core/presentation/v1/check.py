@@ -19,6 +19,16 @@ class Check(AbstractResource):
 jwt = container.jwt()
 
 @jwt.invalid_token_loader
-def custom_expired_token_callback(_):
-    return {'status': ResultEnum.error.value}, 422
+def custom_invalid_token_callback(_):
+    return {
+        'status': ResultEnum.error.value,
+        'data': {'error': 'Token is invalid'}
+    }, 401
 
+
+@jwt.expired_token_loader
+def custom_expired_token_callback(_, __):
+    return {
+        'status': ResultEnum.error.value,
+        'data': {'error': 'Token has been expired'}
+    }, 401

@@ -1,5 +1,5 @@
 from app.core.domain.common import EncodePasswordInterface
-from app.core.domain.auth import AreAuthorizeCredentialsCorrectInterface, GenerateAccessAndRefreshTokensInterface
+from app.core.domain.auth import AreAuthorizeCredentialsCorrectInterface, AuthorizedIdentityProvider, GenerateAccessAndRefreshTokensInterface
 from app.core.domain.auth.entity import Tokens
 
 
@@ -19,5 +19,20 @@ class AuthorizeWithCredentialsUseCase():
 
         if not self.areAuthorizeCredentialsCorrect.run(username, encodedPassword):
             raise Exception('Credentials are wrong')
+
+        return self.generateAccessAndRefreshTokens.run(username)
+
+
+class RefreshTokenUseCase():
+    def __init__(
+        self,
+        authorizedIdentityProvider: AuthorizedIdentityProvider,
+        generateAccessAndRefreshTokens: GenerateAccessAndRefreshTokensInterface
+    ):
+        self.authorizedIdentityProvider = authorizedIdentityProvider
+        self.generateAccessAndRefreshTokens = generateAccessAndRefreshTokens
+
+    def run(self) -> Tokens:
+        username = self.authorizedIdentityProvider.run()
 
         return self.generateAccessAndRefreshTokens.run(username)

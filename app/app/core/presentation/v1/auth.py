@@ -1,4 +1,5 @@
 from flask import request
+from flask_jwt_extended import jwt_required
 from flask_restx import marshal_with, reqparse, fields
 from dependency_injector.wiring import Provide, inject
 from wtforms import Form as BaseForm, fields as forms_fields, validators
@@ -6,7 +7,7 @@ from wtforms import Form as BaseForm, fields as forms_fields, validators
 from app.core.di.container import Container
 from app.core.presentation.v1.helpers import AbstractResource, ResultEnum, ResultField, get_source_from_request_headers, marshal_error_fields
 from app.core.domain.common import SourceTokensProvider
-from app.core.useCase.auth import AuthorizeWithCredentialsUseCase
+from app.core.useCase.auth import AuthorizeWithCredentialsUseCase, RefreshTokenUseCase
 
 
 parser = reqparse.RequestParser()
@@ -19,22 +20,23 @@ class Form(BaseForm):
     password = forms_fields.StringField('Password', [validators.DataRequired()])
 
 
-class Login(AbstractResource):
-    data = marshal_error_fields.copy()
-    data.update({
-        'access_token': fields.String,
-        'refresh_token': fields.String,
-        'expires_in': fields.Integer
-    })
-    resource_fields = {
-        'status': ResultField,
-        'data': fields.Nested(
-            data,
-            allow_null=True,
-            skip_none=True
-        )
-    }
+data = marshal_error_fields.copy()
+data.update({
+    'access_token': fields.String,
+    'refresh_token': fields.String,
+    'expires_in': fields.Integer
+})
+resource_fields = {
+    'status': ResultField,
+    'data': fields.Nested(
+        data,
+        allow_null=True,
+        skip_none=True
+    )
+}
 
+
+class Login(AbstractResource):
     @inject
     @marshal_with(fields=resource_fields, skip_none=True)
     def post(
@@ -56,6 +58,29 @@ class Login(AbstractResource):
                 username=form.username.data,
                 decodedPassword=form.password.data
             )
+        except Exception as exception:
+            return self._send_error(str(exception), status=401)
+
+        return {
+            'status': ResultEnum.success,
+            'data': {
+                'access_token': tokens.accessToken,
+                'refresh_token': tokens.refreshToken,
+                'expires_in': tokens.expiresIn
+            }
+        }
+
+
+class RefreshToken(AbstractResource):
+    @jwt_required(refresh=True)
+    @inject
+    @marshal_with(fields=resource_fields, skip_none=True)
+    def post(
+        self,
+        refreshTokenUseCase: RefreshTokenUseCase = Provide[Container.refreshTokenUseCase]
+    ):
+        try:
+            tokens = refreshTokenUseCase.run()
         except Exception as exception:
             return self._send_error(str(exception), status=401)
 

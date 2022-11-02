@@ -17,7 +17,8 @@ container.configuration.tokens_by_sources.from_dict({
 })
 container.configuration.password_salt.from_env('PASSWORD_SALT')
 container.configuration.secret_key.from_env('SECRET_KEY')
-container.configuration.jwt_expires_seconds.from_env('JWT_EXPIRES_SECONDS', as_=int)
+container.configuration.jwt_access_token_expires_seconds.from_env('JWT_ACCESS_TOKEN_EXPIRES_SECONDS', as_=int)
+container.configuration.jwt_refresh_token_expires_seconds.from_env('JWT_REFRESH_TOKEN_EXPIRES_SECONDS', as_=int)
 
 app = container.app()
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
