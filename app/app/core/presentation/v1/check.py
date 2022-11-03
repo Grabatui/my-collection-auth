@@ -1,7 +1,7 @@
 from flask_jwt_extended import jwt_required
 from flask_restx import marshal_with
 
-from app.main import container
+from app.main import app
 from app.core.presentation.v1.helpers import AbstractResource, ResultEnum, ResultField
 
 
@@ -16,7 +16,7 @@ class Check(AbstractResource):
         return {'status': ResultEnum.success}
 
 
-jwt = container.jwt()
+jwt = app.container.jwt()
 
 @jwt.invalid_token_loader
 def custom_invalid_token_callback(_):

@@ -1,5 +1,4 @@
 from dependency_injector import containers, providers
-from dependency_injector.ext import flask
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restx import Api
@@ -19,9 +18,9 @@ from app.core.persistence.model.registration import NewUserModel
 class Container(containers.DeclarativeContainer):
     configuration = providers.Configuration()
 
-    app = flask.Application(Flask, __name__)
-    apiV1 = flask.Extension(Api)
-    jwt = flask.Extension(JWTManager)
+    app = providers.Singleton(Flask, __name__)
+    apiV1 = providers.Singleton(Api)
+    jwt = providers.Singleton(JWTManager)
 
 
     database = providers.Factory(
