@@ -6,3 +6,4 @@ sqlalchemy
 alembic
 pg8000
 wtforms
+python-json-logger

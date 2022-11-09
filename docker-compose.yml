@@ -21,6 +21,9 @@ services:
       - PASSWORD_SALT=${PASSWORD_SALT}
 
       - SOURCE_TOKEN_MOVIES=${SOURCE_TOKEN_MOVIES}
+    networks:
+      - movies_movies-net
+      - database
   postgres:
     build:
       context: ./.docker/postgres/development
@@ -35,6 +38,13 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
     ports:
       - "15433:5432"
+    networks:
+      - database
 
 volumes:
   postgres-data:
+
+networks:
+  movies_movies-net:
+    external: true
+  database:
