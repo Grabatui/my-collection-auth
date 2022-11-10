@@ -20,10 +20,11 @@ services:
 
       - PASSWORD_SALT=${PASSWORD_SALT}
 
-      - SOURCE_TOKEN_MOVIES=${SOURCE_TOKEN_MOVIES}
+      - SOURCE_TOKEN_MAIN=${SOURCE_TOKEN_MAIN}
     networks:
-      - movies_movies-net
-      - database
+      movies_movies-net:
+        ipv4_address: 172.27.0.2
+      database:
   postgres:
     build:
       context: ./.docker/postgres/development

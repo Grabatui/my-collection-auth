@@ -14,7 +14,7 @@ def create_app():
         )
     )
     container.configuration.tokens_by_sources.from_dict({
-        'movies': os.environ['SOURCE_TOKEN_MOVIES'],
+        'main': os.environ['SOURCE_TOKEN_MAIN'],
     })
     container.configuration.password_salt.from_env('PASSWORD_SALT')
     container.configuration.secret_key.from_env('SECRET_KEY')
