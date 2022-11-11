@@ -1,3 +1,5 @@
+from flask_log_request_id import RequestID
+
 from app.main import app
 
 
@@ -19,3 +21,5 @@ api.init_app(app)
 
 jwt = app.container.jwt()
 jwt.init_app(app)
+
+RequestID(app)

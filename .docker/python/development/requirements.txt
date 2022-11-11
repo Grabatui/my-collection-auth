@@ -6,3 +6,5 @@ sqlalchemy
 alembic
 pg8000
 wtforms
+python-json-logger
+flask-log-request-id

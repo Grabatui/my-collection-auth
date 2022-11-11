@@ -6,7 +6,7 @@ from flask_restx import Api
 from app.core.persistence.repository import Database, UserRepository
 from app.core.useCase.registration import RegisterUseCase
 from app.core.useCase.auth import AuthorizeWithCredentialsUseCase, RefreshTokenUseCase
-from app.core.domain.common import SourceTokensProvider
+from app.core.domain.common import SourceTokensProvider, LoggerProvider
 from app.core.domain.auth import AuthorizedIdentityProvider
 from app.core.domain.registration import PasswordValidator, UserFactory
 from app.core.persistence.action.common import ConvertSourceTokenAction, EncodePasswordAction
@@ -23,11 +23,11 @@ class Container(containers.DeclarativeContainer):
     jwt = providers.Singleton(JWTManager)
 
 
-    database = providers.Factory(
+    database = providers.Singleton(
         Database,
         database_string=configuration.database_string
     )
-    userRepository = providers.Factory(
+    userRepository = providers.Singleton(
         UserRepository,
         database=database
     )
@@ -37,55 +37,59 @@ class Container(containers.DeclarativeContainer):
 
 
     convertSourceToken = providers.Singleton(ConvertSourceTokenAction)
-    encodePassword = providers.Factory(
+    encodePassword = providers.Singleton(
         EncodePasswordAction,
         salt=configuration.password_salt
     )
-    createUser = providers.Factory(
+    createUser = providers.Singleton(
         CreateUserAction,
         userRepository=userRepository,
         newUserModel=newUserModel
     )
-    isUsernameAlreadyExists = providers.Factory(
+    isUsernameAlreadyExists = providers.Singleton(
         IsUsernameAlreadyExistsAction,
         userRepository=userRepository
     )
-    areAuthorizeCredentialsCorrect = providers.Factory(
+    areAuthorizeCredentialsCorrect = providers.Singleton(
         AreAuthorizeCredentialsCorrectAction,
         userRepository=userRepository
     )
-    generateAccessAndRefreshTokens = providers.Factory(
+    generateAccessAndRefreshTokens = providers.Singleton(
         GenerateAccessAndRefreshTokensAction,
         jwtAccessTokenExpiresIn=configuration.jwt_access_token_expires_seconds,
         jwtRefreshTokenExpiresIn=configuration.jwt_refresh_token_expires_seconds
     )
 
 
-    sourceTokensProvider = providers.Factory(
+    sourceTokensProvider = providers.Singleton(
         SourceTokensProvider,
         tokensBySources=configuration.tokens_by_sources,
         convertSourceToken=convertSourceToken
     )
-    userFactory = providers.Factory(
+    userFactory = providers.Singleton(
         UserFactory,
         encodePassword=encodePassword
     )
     passwordValidator = providers.Singleton(PasswordValidator)
     authorizedIdentityProvider = providers.Singleton(AuthorizedIdentityProvider)
+    loggerProvider = providers.Singleton(
+        LoggerProvider,
+        logRootPath=configuration.root_path
+    )
 
 
-    registerUseCase = providers.Factory(
+    registerUseCase = providers.Singleton(
         RegisterUseCase,
         userFactory=userFactory,
         createUser=createUser
     )
-    athorizeWithCredentialsUseCase = providers.Factory(
+    athorizeWithCredentialsUseCase = providers.Singleton(
         AuthorizeWithCredentialsUseCase,
         encodePassword=encodePassword,
         areAuthorizeCredentialsCorrect=areAuthorizeCredentialsCorrect,
         generateAccessAndRefreshTokens=generateAccessAndRefreshTokens
     )
-    refreshTokenUseCase = providers.Factory(
+    refreshTokenUseCase = providers.Singleton(
         RefreshTokenUseCase,
         authorizedIdentityProvider=authorizedIdentityProvider,
         generateAccessAndRefreshTokens=generateAccessAndRefreshTokens

@@ -1,5 +1,7 @@
 from typing import Optional
 
+from app.core.domain.entity import Logger
+
 
 class EncodePasswordInterface():
     def run(self, decodedPassword: str) -> str:
@@ -28,3 +30,11 @@ class SourceTokensProvider():
                 return source
 
         return None
+
+
+class LoggerProvider():
+    def __init__(self, logRootPath: str) -> None:
+        self.logRootPath = logRootPath
+
+    def get(self, name: str) -> Logger:
+        return Logger(name, self.logRootPath)

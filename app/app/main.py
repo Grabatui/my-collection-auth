@@ -23,6 +23,11 @@ def create_app():
 
     app = container.app()
     app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+    app.config['ERROR_INCLUDE_MESSAGE'] = False
+
+    container.configuration.root_path.from_value(
+        os.path.dirname(app.instance_path)
+    )
 
     app.container = container
 
